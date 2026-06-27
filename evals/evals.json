@@ -1,0 +1,51 @@
+{
+  "skill": "requirements-to-spec",
+  "description": "Each case is a messy SaaS feature request. We run the agent WITH and WITHOUT the skill, then validate the output. The with-skill run should pass validation; the no-skill run should fail because the bare model rambles and omits required sections.",
+  "cases": [
+    {
+      "id": "case-1-dark-mode",
+      "input": "hey can we add a dark mode to the app? people keep asking. should be easy. make sure it looks good.",
+      "planted_gaps": [
+        "No success metric (what does 'looks good' mean?)",
+        "No mention of accessibility/contrast compliance",
+        "Unspecified: should it follow the OS setting?"
+      ],
+      "assertions": [
+        "Output contains all 6 required sections",
+        "Acceptance criteria are testable (contain a number or clear condition)",
+        "The missing accessibility constraint appears under Open Questions or Compliance Flags",
+        "validate.py exits 0"
+      ]
+    },
+    {
+      "id": "case-2-csv-export",
+      "input": "we need users to be able to export their data. finance asked for it. probably csv. oh and it should be fast even for big accounts.",
+      "planted_gaps": [
+        "'Fast' is not quantified",
+        "'Big accounts' is not defined (how many rows?)",
+        "No mention of what data fields are included or PII handling"
+      ],
+      "assertions": [
+        "Output contains all 6 required sections",
+        "'fast' is converted into a measurable criterion (e.g. completes in under N seconds)",
+        "A PII / data-handling flag appears under Compliance Flags",
+        "validate.py exits 0"
+      ]
+    },
+    {
+      "id": "case-3-notifications",
+      "input": "add notifications so users know when stuff happens. email is fine. dont spam them.",
+      "planted_gaps": [
+        "'Stuff happens' is undefined (which events trigger a notification?)",
+        "'Dont spam' has no rule (frequency cap?)",
+        "No opt-out / unsubscribe requirement stated"
+      ],
+      "assertions": [
+        "Output contains all 6 required sections",
+        "At least one acceptance criterion defines a frequency or rate limit",
+        "An opt-out / unsubscribe requirement appears (criteria or open questions)",
+        "validate.py exits 0"
+      ]
+    }
+  ]
+}
