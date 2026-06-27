@@ -111,6 +111,35 @@ def check_required_sections(sections):
     return results
 
 
+def _group_criteria(items):
+    """Group each numbered criterion with its indented sub-bullets.
+
+    The model often writes a criterion as a numbered header plus detail lines:
+        1. **Performance Impact**
+           - must not exceed 200 ms ...
+    These should be evaluated as ONE criterion, not three. We start a new group
+    on a top-level numbered/bulleted line and append following lines to it.
+    """
+    groups = []
+    current = None
+    for raw in items:
+        # A NUMBERED line ("1." / "2)") starts a new top-level criterion.
+        # A dash/star bullet ("- " / "* ") or a plain line is sub-detail that
+        # belongs to the current criterion (the model nests specifics there).
+        if re.match(r"^\s*\d+[.)]\s+\S", raw):
+            if current is not None:
+                groups.append(current)
+            current = raw
+        else:
+            if current is None:
+                current = raw
+            else:
+                current += " " + raw.strip()
+    if current is not None:
+        groups.append(current)
+    return groups
+
+
 def check_acceptance_testable(sections):
     results = []
     body = sections.get("Acceptance Criteria", "")
@@ -120,7 +149,8 @@ def check_acceptance_testable(sections):
                         "no acceptance criteria found"))
         return results
 
-    for item in items:
+    groups = _group_criteria(items)
+    for item in groups:
         # strip leading list marker ("1.", "2)", "-", "*") so the list number
         # itself is not mistaken for a measurable signal
         stripped = re.sub(r"^\s*(\d+[.)]|-|\*)\s*", "", item)
@@ -128,13 +158,13 @@ def check_acceptance_testable(sections):
         vague_hit = next((w for w in VAGUE_WORDS if w in lower), None)
         testable = bool(TESTABLE_SIGNALS.search(stripped))
         if vague_hit and not testable:
-            results.append((f"Testable: '{item[:50]}...'", False,
+            results.append((f"Testable: '{stripped[:50]}...'", False,
                             f"vague word '{vague_hit}' with no measurable signal"))
         elif not testable:
-            results.append((f"Testable: '{item[:50]}...'", False,
+            results.append((f"Testable: '{stripped[:50]}...'", False,
                             "no measurable signal (number/threshold/condition)"))
         else:
-            results.append((f"Testable: '{item[:50]}...'", True, ""))
+            results.append((f"Testable: '{stripped[:50]}...'", True, ""))
     return results
 
 
